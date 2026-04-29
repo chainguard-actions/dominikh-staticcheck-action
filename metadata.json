@@ -1,5 +1,6 @@
 {
   "owner": "dominikh",
   "name": "staticcheck-action",
-  "visibility": ""
+  "visibility": "internal",
+  "description": "Staticcheck's official GitHub Action"
 }
