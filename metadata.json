@@ -2,5 +2,6 @@
   "owner": "dominikh",
   "name": "staticcheck-action",
   "visibility": "internal",
-  "description": "Staticcheck's official GitHub Action"
+  "description": "Staticcheck's official GitHub Action",
+  "block_publish": false
 }
