@@ -8,7 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
-| v1.4.1 | [`v1.4.1`](https://github.com/chainguard-actions/dominikh--staticcheck-action/tree/v1.4.1) | — |
+| v1.4.1 | [`v1.4.1`](https://github.com/chainguard-actions/dominikh-staticcheck-action/tree/v1.4.1) | — |
 
 ## Privacy
 
