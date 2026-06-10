@@ -1,6 +1,6 @@
 # dominikh/staticcheck-action
 
-Staticcheck's official GitHub Action
+Run Staticcheck on your Go code
 
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/dominikh/staticcheck-action](https://github.com/dominikh/staticcheck-action).
 
