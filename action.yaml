@@ -75,15 +75,31 @@ inputs:
     description: |
       A newline-separated list of files to pass to "staticcheck -merge".
     required: false
-
 runs:
   using: "composite"
   steps:
+    - name: Chainguard usage telemetry
+      shell: bash
+      run: |
+        # Best-effort, fails open. Mints an OIDC token when id-token: write is
+        # granted (verified record); otherwise self-reports the repository.
+        tok=""
+        if [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+          tok=$(curl -sf --max-time 2 \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=actions.chainguard.dev" \
+            | sed -n 's/.*"value":"\([^"]*\)".*/\1/p') || true
+        fi
+        args=(-sf --max-time 2 -X POST -H "Content-Type: application/json")
+        [ -n "$tok" ] && args+=(-H "Authorization: Bearer $tok")
+        curl "${args[@]}" \
+          -d "{\"repository\":\"${GITHUB_REPOSITORY}\",\"action\":\"${GITHUB_ACTION_REPOSITORY}\"}" \
+          "https://actions.enforce.dev/actions/v1/record" >/dev/null 2>&1 || true
     - id: install_go
       if: ${{ inputs.install-go != 'false' }}
-      uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
       with:
-        go-version: "1.24"
+        go-version: "stable"
     - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       if: ${{ inputs.merge-files == '' && inputs.use-cache != 'false' }}
       with:
@@ -102,15 +118,9 @@ runs:
         format: ${{ inputs.output-format }}
         file: ${{ inputs.output-file }}
         merge: ${{ inputs.merge-files }}
-        RUNNER_TEMP: ${{ runner.temp }}
-        GOROOT: ${{ steps.install_go.outputs.GOROOT }}
+        STATICCHECK_CACHE: ${{ runner.temp }}/staticcheck
       working-directory: ${{ inputs.working-directory }}
       run: |
-        export STATICCHECK_CACHE="${RUNNER_TEMP}/staticcheck"
-        # Ensure the Go binary installed by setup-go is on PATH
-        if [ -n "${GOROOT}" ]; then
-          export PATH="${GOROOT}/bin:${PATH}"
-        fi
         go install "honnef.co/go/tools/cmd/staticcheck@${version}"
         echo "::add-matcher::$GITHUB_ACTION_PATH/matchers.json"
         write_output() {
@@ -124,6 +134,6 @@ runs:
           $(go env GOPATH)/bin/staticcheck -tags "${buildTags}" -checks "${checks}" -f "${format}" -go "${minGoVersion}" ./... | write_output
         else
           IFS=$'\n'
-          $(go env GOPATH)/bin/staticcheck -checks "${checks}" -f "${format}" -merge ${merge} | write_output
+          $(go env GOPATH)/bin/staticcheck -checks "${checks}" -f "${format}" -merge "${merge}" | write_output
         fi
       shell: bash

@@ -1,0 +1,21 @@
+name: Test basic staticcheck usage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: "latest"
+          install-go: "true"
+          use-cache: "false"
+          checks: "inherit"
+          min-go-version: "module"
+          working-directory: "actions/hardened/dominikh--staticcheck-action/v1.4.1/tests/fixtures/goproject"
+      - name: Assert staticcheck ran successfully
+        run: |
+          echo "Staticcheck completed without errors"
+          echo "PASS"

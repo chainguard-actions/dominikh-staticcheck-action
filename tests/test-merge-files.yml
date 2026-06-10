@@ -1,0 +1,42 @@
+name: Test staticcheck with merge-files
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # First run: produce binary output
+      - id: action-binary
+        uses: .
+        with:
+          version: "latest"
+          install-go: "true"
+          use-cache: "false"
+          checks: "inherit"
+          output-format: "binary"
+          output-file: "/tmp/staticcheck-run1.bin"
+          working-directory: "actions/hardened/dominikh--staticcheck-action/v1.4.1/tests/fixtures/goproject"
+      - name: Assert binary output file was created
+        run: |
+          echo "Checking that binary output file exists..."
+          if [ ! -f "/tmp/staticcheck-run1.bin" ]; then
+            echo "FAIL: binary output file /tmp/staticcheck-run1.bin was not created"
+            exit 1
+          fi
+          echo "Binary output file exists"
+          echo "PASS"
+      # Second run: merge the binary files
+      - id: action-merge
+        uses: .
+        with:
+          version: "latest"
+          install-go: "false"
+          use-cache: "false"
+          checks: "inherit"
+          merge-files: "/tmp/staticcheck-run1.bin"
+          working-directory: "actions/hardened/dominikh--staticcheck-action/v1.4.1/tests/fixtures/goproject"
+      - name: Assert merge completed successfully
+        run: |
+          echo "Staticcheck merge completed successfully"
+          echo "PASS"

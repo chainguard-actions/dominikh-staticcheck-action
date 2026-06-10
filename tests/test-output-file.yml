@@ -1,0 +1,26 @@
+name: Test staticcheck with output-file
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: "latest"
+          install-go: "true"
+          use-cache: "false"
+          checks: "inherit"
+          working-directory: "actions/hardened/dominikh--staticcheck-action/v1.4.1/tests/fixtures/goproject"
+          output-file: "/tmp/staticcheck-output.txt"
+      - name: Assert output file was created
+        run: |
+          echo "Checking that output file exists..."
+          if [ ! -f "/tmp/staticcheck-output.txt" ]; then
+            echo "FAIL: output file /tmp/staticcheck-output.txt was not created"
+            exit 1
+          fi
+          echo "Output file exists"
+          echo "PASS"
