@@ -1,4 +1,4 @@
-name: Test basic staticcheck usage
+name: Test staticcheck with working-directory
 on:
   workflow_dispatch:
 jobs:
@@ -9,7 +9,7 @@ jobs:
 
       - name: Copy Go fixture into workspace
         run: |
-          cp -r "$GITHUB_WORKSPACE/tests/fixtures/go-basic" "$GITHUB_WORKSPACE/go-basic"
+          cp -r "$GITHUB_WORKSPACE/tests/fixtures/go-subdir/subpkg" "$GITHUB_WORKSPACE/subpkg"
 
       - id: action
         uses: .
@@ -17,9 +17,9 @@ jobs:
           version: "latest"
           install-go: "true"
           use-cache: "false"
-          working-directory: "go-basic"
+          working-directory: "subpkg"
 
-      - name: Assert staticcheck ran successfully
+      - name: Assert staticcheck ran in subdirectory
         run: |
-          echo "Staticcheck completed successfully (no issues found in clean code)"
+          echo "Staticcheck completed successfully in subdirectory"
           echo "PASS"

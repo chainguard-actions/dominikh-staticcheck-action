@@ -1,4 +1,4 @@
-name: Test basic staticcheck usage
+name: Test staticcheck with install-go false (pre-installed Go)
 on:
   workflow_dispatch:
 jobs:
@@ -6,6 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Go manually
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: "stable"
 
       - name: Copy Go fixture into workspace
         run: |
@@ -15,11 +20,11 @@ jobs:
         uses: .
         with:
           version: "latest"
-          install-go: "true"
+          install-go: "false"
           use-cache: "false"
           working-directory: "go-basic"
 
-      - name: Assert staticcheck ran successfully
+      - name: Assert staticcheck ran with pre-installed Go
         run: |
-          echo "Staticcheck completed successfully (no issues found in clean code)"
+          echo "Staticcheck completed with install-go=false (Go pre-installed)"
           echo "PASS"

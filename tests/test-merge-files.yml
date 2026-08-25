@@ -6,36 +6,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      # First run: produce binary output
+
+      - name: Copy Go fixture into workspace
+        run: |
+          cp -r "$GITHUB_WORKSPACE/tests/fixtures/go-basic" "$GITHUB_WORKSPACE/go-basic"
+
+      - name: Install Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: "stable"
+
       - id: action-binary
         uses: .
         with:
           version: "latest"
-          install-go: "true"
+          install-go: "false"
           use-cache: "false"
-          checks: "inherit"
+          working-directory: "go-basic"
           output-format: "binary"
-          output-file: "/tmp/staticcheck-run1.bin"
-          working-directory: "actions/hardened/dominikh--staticcheck-action/v1.4.1/tests/fixtures/goproject"
+          output-file: "/tmp/staticcheck-binary.out"
+
       - name: Assert binary output file was created
         run: |
           echo "Checking that binary output file exists..."
-          if [ ! -f "/tmp/staticcheck-run1.bin" ]; then
-            echo "FAIL: binary output file /tmp/staticcheck-run1.bin was not created"
+          if [ ! -f "/tmp/staticcheck-binary.out" ]; then
+            echo "FAIL: binary output file /tmp/staticcheck-binary.out was not created"
             exit 1
           fi
-          echo "Binary output file exists"
+          echo "Binary output file exists."
           echo "PASS"
-      # Second run: merge the binary files
+
       - id: action-merge
         uses: .
         with:
           version: "latest"
           install-go: "false"
           use-cache: "false"
-          checks: "inherit"
-          merge-files: "/tmp/staticcheck-run1.bin"
-          working-directory: "actions/hardened/dominikh--staticcheck-action/v1.4.1/tests/fixtures/goproject"
+          working-directory: "go-basic"
+          output-format: "text"
+          merge-files: "/tmp/staticcheck-binary.out"
+
       - name: Assert merge completed successfully
         run: |
           echo "Staticcheck merge completed successfully"

@@ -1,4 +1,4 @@
-name: Test basic staticcheck usage
+name: Test staticcheck with custom checks
 on:
   workflow_dispatch:
 jobs:
@@ -17,9 +17,10 @@ jobs:
           version: "latest"
           install-go: "true"
           use-cache: "false"
+          checks: "all"
           working-directory: "go-basic"
 
-      - name: Assert staticcheck ran successfully
+      - name: Assert staticcheck ran with custom checks
         run: |
-          echo "Staticcheck completed successfully (no issues found in clean code)"
+          echo "Staticcheck completed with checks=all on clean code"
           echo "PASS"

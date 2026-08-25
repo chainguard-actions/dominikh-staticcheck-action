@@ -1,4 +1,4 @@
-name: Test basic staticcheck usage
+name: Test staticcheck with build-tags
 on:
   workflow_dispatch:
 jobs:
@@ -18,8 +18,9 @@ jobs:
           install-go: "true"
           use-cache: "false"
           working-directory: "go-basic"
+          build-tags: "integration"
 
-      - name: Assert staticcheck ran successfully
+      - name: Assert staticcheck ran successfully with build tags
         run: |
-          echo "Staticcheck completed successfully (no issues found in clean code)"
+          echo "Staticcheck completed successfully with build-tags=integration"
           echo "PASS"

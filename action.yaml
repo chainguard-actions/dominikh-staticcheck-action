@@ -118,9 +118,10 @@ runs:
         format: ${{ inputs.output-format }}
         file: ${{ inputs.output-file }}
         merge: ${{ inputs.merge-files }}
-        STATICCHECK_CACHE: ${{ runner.temp }}/staticcheck
+        runnerTemp: ${{ runner.temp }}
       working-directory: ${{ inputs.working-directory }}
       run: |
+        export STATICCHECK_CACHE="${runnerTemp}/staticcheck"
         go install "honnef.co/go/tools/cmd/staticcheck@${version}"
         echo "::add-matcher::$GITHUB_ACTION_PATH/matchers.json"
         write_output() {
@@ -133,7 +134,10 @@ runs:
         if [ -z "${merge}" ]; then
           $(go env GOPATH)/bin/staticcheck -tags "${buildTags}" -checks "${checks}" -f "${format}" -go "${minGoVersion}" ./... | write_output
         else
-          IFS=$'\n'
-          $(go env GOPATH)/bin/staticcheck -checks "${checks}" -f "${format}" -merge "${merge}" | write_output
+          merge_files=()
+          while IFS= read -r merge_file; do
+            [ -n "$merge_file" ] && merge_files+=("$merge_file")
+          done <<< "$merge"
+          $(go env GOPATH)/bin/staticcheck -checks "${checks}" -f "${format}" -merge "${merge_files[@]}" | write_output
         fi
       shell: bash
