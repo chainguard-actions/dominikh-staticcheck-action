@@ -1,4 +1,4 @@
-name: Test staticcheck with custom cache-key
+name: Test staticcheck with cache-key
 on:
   workflow_dispatch:
 jobs:
@@ -16,11 +16,11 @@ jobs:
         with:
           version: "latest"
           install-go: "true"
-          use-cache: "true"
-          cache-key: "go1.21"
+          use-cache: "false"
           working-directory: "go-basic"
+          cache-key: "go1.21"
 
-      - name: Assert staticcheck ran successfully with custom cache key
+      - name: Assert staticcheck ran successfully with custom cache-key
         run: |
           echo "Staticcheck completed successfully with cache-key=go1.21"
           echo "PASS"

@@ -11,42 +11,34 @@ jobs:
         run: |
           cp -r "$GITHUB_WORKSPACE/tests/fixtures/go-basic" "$GITHUB_WORKSPACE/go-basic"
 
-      - name: Install Go
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
-        with:
-          go-version: "stable"
-
-      - id: action-binary
+      - name: Run staticcheck to produce binary output file
+        id: produce_binary
         uses: .
         with:
           version: "latest"
-          install-go: "false"
+          install-go: "true"
           use-cache: "false"
           working-directory: "go-basic"
           output-format: "binary"
-          output-file: "/tmp/staticcheck-binary.out"
+          output-file: "/tmp/staticcheck-binary.bin"
 
       - name: Assert binary output file was created
         run: |
-          echo "Checking that binary output file exists..."
-          if [ ! -f "/tmp/staticcheck-binary.out" ]; then
-            echo "FAIL: binary output file /tmp/staticcheck-binary.out was not created"
+          if [ ! -f "/tmp/staticcheck-binary.bin" ]; then
+            echo "FAIL: binary output file was not created"
             exit 1
           fi
-          echo "Binary output file exists."
-          echo "PASS"
+          echo "Binary output file created successfully"
 
-      - id: action-merge
+      - id: action
         uses: .
         with:
           version: "latest"
           install-go: "false"
           use-cache: "false"
-          working-directory: "go-basic"
-          output-format: "text"
-          merge-files: "/tmp/staticcheck-binary.out"
+          merge-files: "/tmp/staticcheck-binary.bin"
 
-      - name: Assert merge completed successfully
+      - name: Assert merge ran successfully
         run: |
           echo "Staticcheck merge completed successfully"
           echo "PASS"

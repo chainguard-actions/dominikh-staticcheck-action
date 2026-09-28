@@ -10,22 +10,25 @@
 
 **Harden Agent Version:** `2`
 
-Action **dominikh--staticcheck-action/v1.4.1** was hardened automatically. 1 finding(s) were identified and resolved across 1 iteration(s).
+Action **dominikh--staticcheck-action/v1.4.1** was hardened automatically. 2 finding(s) were identified and resolved across 1 iteration(s).
 
 ## Findings Fixed
 
 ### script-injection (severity: high)
 
-The `run:` block in the composite action step contains two script-injection violations:
-
-(a) Sub-rule (a) — Direct expression interpolation: `${{ runner.temp }}` is interpolated directly inside the shell `run:` script: `export STATICCHECK_CACHE="${{ runner.temp }}/staticcheck"`. Any `${{ ... }}` expression inside a `run:` block is a script-injection risk because YAML template substitution occurs before the shell ever sees the string, allowing an attacker-controlled or context-derived value to break out of the intended string context.
-
-(b) Sub-rule (b) — Unquoted shell variable expansion: `${merge}` is used unquoted in the command `$(go env GOPATH)/bin/staticcheck -checks "${checks}" -f "${format}" -merge ${merge} | write_output`. The `merge` env var holds `${{ inputs.merge-files }}` (caller-controlled), and the bare unquoted expansion allows shell metacharacters (`;`, `|`, `&`, `$(...)`, whitespace, globs) embedded in the input to be interpreted by the shell, enabling command injection.
+Sub-rule (a): A GitHub Actions expression `${{ runner.temp }}` is directly interpolated inside a `run:` shell command string at line 106: `export STATICCHECK_CACHE="${{ runner.temp }}/staticcheck"`. Any `${{ ... }}` expression inside a `run:` block is a script-injection risk because the value is substituted into the shell script before the shell parses it. The safe pattern is to use the corresponding environment variable (`$RUNNER_TEMP`) instead of the expression form.
 
 Locations:
 
-- `action.yaml:110`
-- `action.yaml:124`
+- `action.yaml:106`
+
+### script-injection (severity: high)
+
+Sub-rule (b): The shell variable `${merge}` — which holds the value of `inputs.merge-files` (untrusted caller-supplied input) — is expanded **unquoted** inside the `run:` block at line 120: `$(go env GOPATH)/bin/staticcheck -checks "${checks}" -f "${format}" -merge ${merge} | write_output`. An unquoted expansion allows the shell to parse metacharacters (`;`, `|`, `&`, `$(...)`, whitespace, glob chars) out of the value, enabling command injection. It must be double-quoted: `-merge "${merge}"`.
+
+Locations:
+
+- `action.yaml:120`
 
 ## Iteration Notes
 
@@ -36,8 +39,6 @@ Locations:
 **Notes:**
 
 Fixed two script-injection issues in action.yaml:
-
-(a) Moved `${{ runner.temp }}` out of the `run:` shell script and into the step's `env:` block as `runnerTemp: ${{ runner.temp }}`. The shell script now uses `${runnerTemp}` (a plain env var) instead of the template expression, eliminating direct expression interpolation in the shell.
-
-(b) Replaced the unquoted `${merge}` expansion (which allowed shell metacharacter injection from the caller-controlled `merge-files` input) with a safe bash array built via a `while IFS= read -r` loop that splits the newline-separated file list. The array is then expanded as `"${merge_files[@]}"` (properly quoted), ensuring each file path is treated as a separate, safe argument.
+1. Line 106: Replaced `${{ runner.temp }}` with `$RUNNER_TEMP` (the pre-set environment variable) to eliminate GitHub Actions expression interpolation inside the run block.
+2. Line 120: Replaced the unquoted `${merge}` expansion (a newline-separated list of files) with a safe bash array. The code now reads each newline-delimited file path into a `merge_files` array via `while IFS= read -r merge_file`, then passes `"${merge_files[@]}"` to staticcheck — preserving correct multi-file argument splitting while preventing shell metacharacter injection.
 
