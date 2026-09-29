@@ -8,13 +8,13 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Create a minimal Go project
         run: |
-          mkdir -p /tmp/go-project-cache
-          cat > /tmp/go-project-cache/go.mod << 'EOF'
+          mkdir -p /tmp/go-project
+          cat > /tmp/go-project/go.mod << 'EOF'
           module example.com/hello
 
           go 1.21
           EOF
-          cat > /tmp/go-project-cache/main.go << 'EOF'
+          cat > /tmp/go-project/main.go << 'EOF'
           package main
 
           func main() {}
@@ -24,9 +24,9 @@ jobs:
         with:
           version: "latest"
           install-go: true
+          cache-key: "go-stable"
+          working-directory: /tmp/go-project
           use-cache: true
-          cache-key: "go1.21-test"
-          working-directory: /tmp/go-project-cache
-      - name: Assert staticcheck ran with cache-key
+      - name: Assert staticcheck ran successfully with cache-key
         run: |
-          echo "PASS: staticcheck ran successfully with cache-key input"
+          echo "PASS: staticcheck ran with cache-key input"

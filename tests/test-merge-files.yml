@@ -6,37 +6,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Set up Go
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
-        with:
-          go-version: "stable"
       - name: Create a minimal Go project
         run: |
-          mkdir -p /tmp/go-project-merge
-          cat > /tmp/go-project-merge/go.mod << 'EOF'
+          mkdir -p /tmp/go-project
+          cat > /tmp/go-project/go.mod << 'EOF'
           module example.com/hello
 
           go 1.21
           EOF
-          cat > /tmp/go-project-merge/main.go << 'EOF'
+          cat > /tmp/go-project/main.go << 'EOF'
           package main
 
           func main() {}
           EOF
-      - name: Install staticcheck and produce binary output
+      - name: Run staticcheck in binary mode to produce a merge input file
+        id: binary-run
+        uses: .
+        with:
+          version: "latest"
+          install-go: true
+          working-directory: /tmp/go-project
+          output-format: "binary"
+          output-file: "/tmp/staticcheck-result.bin"
+          use-cache: false
+      - name: Verify binary output file was created
         run: |
-          go install honnef.co/go/tools/cmd/staticcheck@latest
-          export STATICCHECK_CACHE="${RUNNER_TEMP}/staticcheck"
-          cd /tmp/go-project-merge
-          $(go env GOPATH)/bin/staticcheck -f binary ./... > /tmp/staticcheck-output.bin || true
-      - id: action
+          if [ ! -f /tmp/staticcheck-result.bin ]; then
+            echo "FAIL: binary output file was not created"
+            exit 1
+          fi
+          echo "PASS: binary output file exists"
+      - id: merge-action
         uses: .
         with:
           version: "latest"
           install-go: false
+          merge-files: "/tmp/staticcheck-result.bin"
           use-cache: false
-          merge-files: "/tmp/staticcheck-output.bin"
-          output-format: "text"
-      - name: Assert staticcheck merge ran successfully
+      - name: Assert merge ran successfully
         run: |
-          echo "PASS: staticcheck ran successfully with merge-files input"
+          echo "PASS: staticcheck ran with merge-files input"

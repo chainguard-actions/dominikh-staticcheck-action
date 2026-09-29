@@ -35,9 +35,9 @@ jobs:
         with:
           version: "latest"
           install-go: true
-          use-cache: false
           build-tags: "mytag"
           working-directory: /tmp/go-project
-      - name: Assert staticcheck ran with build-tags
+          use-cache: false
+      - name: Assert staticcheck ran successfully with build-tags
         run: |
-          echo "PASS: staticcheck ran successfully with build-tags input"
+          echo "PASS: staticcheck ran with build-tags input"
