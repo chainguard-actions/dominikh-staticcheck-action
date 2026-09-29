@@ -1,4 +1,4 @@
-name: Test staticcheck with build-tags
+name: Test build-tags input
 on:
   workflow_dispatch:
 jobs:
@@ -6,21 +6,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Copy Go fixture into workspace
+      - name: Create a minimal Go project with build tag
         run: |
-          cp -r "$GITHUB_WORKSPACE/tests/fixtures/go-basic" "$GITHUB_WORKSPACE/go-basic"
+          mkdir -p /tmp/go-project
+          cat > /tmp/go-project/go.mod << 'EOF'
+          module example.com/hello
 
+          go 1.21
+          EOF
+          cat > /tmp/go-project/main.go << 'EOF'
+          package main
+
+          func main() {}
+          EOF
+          cat > /tmp/go-project/tagged.go << 'EOF'
+          //go:build mytag
+
+          package main
+
+          import "fmt"
+
+          func taggedFunc() {
+          	fmt.Println("tagged")
+          }
+          EOF
       - id: action
         uses: .
         with:
           version: "latest"
-          install-go: "true"
-          use-cache: "false"
-          working-directory: "go-basic"
-          build-tags: "integration"
-
-      - name: Assert staticcheck ran successfully with build tags
+          install-go: true
+          use-cache: false
+          build-tags: "mytag"
+          working-directory: /tmp/go-project
+      - name: Assert staticcheck ran with build-tags
         run: |
-          echo "Staticcheck completed successfully with build-tags=integration"
-          echo "PASS"
+          echo "PASS: staticcheck ran successfully with build-tags input"

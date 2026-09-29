@@ -1,4 +1,4 @@
-name: Test staticcheck with cache-key
+name: Test cache-key input
 on:
   workflow_dispatch:
 jobs:
@@ -6,21 +6,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Copy Go fixture into workspace
+      - name: Create a minimal Go project
         run: |
-          cp -r "$GITHUB_WORKSPACE/tests/fixtures/go-basic" "$GITHUB_WORKSPACE/go-basic"
+          mkdir -p /tmp/go-project-cache
+          cat > /tmp/go-project-cache/go.mod << 'EOF'
+          module example.com/hello
 
+          go 1.21
+          EOF
+          cat > /tmp/go-project-cache/main.go << 'EOF'
+          package main
+
+          func main() {}
+          EOF
       - id: action
         uses: .
         with:
           version: "latest"
-          install-go: "true"
-          use-cache: "false"
-          working-directory: "go-basic"
-          cache-key: "go1.21"
-
-      - name: Assert staticcheck ran successfully with custom cache-key
+          install-go: true
+          use-cache: true
+          cache-key: "go1.21-test"
+          working-directory: /tmp/go-project-cache
+      - name: Assert staticcheck ran with cache-key
         run: |
-          echo "Staticcheck completed successfully with cache-key=go1.21"
-          echo "PASS"
+          echo "PASS: staticcheck ran successfully with cache-key input"
