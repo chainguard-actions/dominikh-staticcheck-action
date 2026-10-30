@@ -6,9 +6,9 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v1.4.1 | [`v1.4.1`](https://github.com/chainguard-actions/dominikh-staticcheck-action/tree/v1.4.1) | [`9716614`](https://github.com/dominikh/staticcheck-action/commit/9716614d4101e79b4340dd97b10e54d68234e431) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v1.4.1 | [`v1.4.1`](https://github.com/chainguard-actions/dominikh-staticcheck-action/tree/v1.4.1) | [`9716614`](https://github.com/dominikh/staticcheck-action/commit/9716614d4101e79b4340dd97b10e54d68234e431) | [`HARDENING.md`](https://github.com/chainguard-actions/dominikh-staticcheck-action/blob/v1.4.1/HARDENING.md) |
 
 ## Privacy
 
