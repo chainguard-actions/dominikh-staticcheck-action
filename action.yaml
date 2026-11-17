@@ -75,6 +75,7 @@ inputs:
     description: |
       A newline-separated list of files to pass to "staticcheck -merge".
     required: false
+
 runs:
   using: "composite"
   steps:
@@ -118,7 +119,6 @@ runs:
         format: ${{ inputs.output-format }}
         file: ${{ inputs.output-file }}
         merge: ${{ inputs.merge-files }}
-        RUNNER_TEMP: ${{ runner.temp }}
       working-directory: ${{ inputs.working-directory }}
       run: |
         export STATICCHECK_CACHE="${RUNNER_TEMP}/staticcheck"
@@ -134,10 +134,9 @@ runs:
         if [ -z "${merge}" ]; then
           $(go env GOPATH)/bin/staticcheck -tags "${buildTags}" -checks "${checks}" -f "${format}" -go "${minGoVersion}" ./... | write_output
         else
-          merge_files=()
-          while IFS= read -r merge_file; do
-            [ -n "${merge_file}" ] && merge_files+=("${merge_file}")
-          done <<< "${merge}"
+          IFS=$'\n'
+          # shellcheck disable=SC2206
+          merge_files=(${merge})   # same newline split and glob as upstream's unquoted ${merge}
           $(go env GOPATH)/bin/staticcheck -checks "${checks}" -f "${format}" -merge "${merge_files[@]}" | write_output
         fi
       shell: bash
